@@ -48,9 +48,11 @@ button{cursor:pointer;border:0;border-radius:8px;padding:10px 14px;font-size:14p
   <label>Nomor Pesanan</label>
   <input id="lgNo" placeholder="contoh: KHT-001" autocomplete="off">
   <div id="lgPesan"></div>
-  <div style="margin-top:12px"><button class="btnA" style="width:100%" onclick="doLogin()">Masuk</button></div>
-  <p class="muted" style="margin-top:14px">Belum punya kode pesanan? Hubungi admin WA <b>0813-8701-6337</b></p>
+  <div style="margin-top:14px"><button class="btn big" onclick="doLogin()">MASUK ➜</button></div>
+  <p class="small" style="margin-top:12px">Belum punya nomor pesanan?
+    <a id="linkWa" href="#" target="_blank">Hubungi admin via WhatsApp</a>.</p>
 </div>
+
 
 <!-- ============ APP ============ -->
 <div id="app" style="display:none">
@@ -441,8 +443,9 @@ var SECRET_KEY = "form2026";
 var ADMIN_WA = "6281387016337";
 
 /* Ctrl+F: DAFTAR_PESANAN — isi dari generator-kode.html (jenis KHT) */
+var SECRET_KEY = "form2026";
 var DAFTAR_PESANAN = [
-  // {kode:"xxxxxxxx", label:"base64dari(user|KHT-001)", exp:"2026-12-31"}
+  { kode:"1g1cm1wc6rhmo", label:"RWthfGtodC0wMDE=", exp:"2026-09-30" }
 ];
 
 /* Ctrl+F: STUDIO_FOTO — isi URL/dataURL foto koleksi studio; kosong = seksi disembunyikan */
