@@ -44,9 +44,9 @@ button{cursor:pointer;border:0;border-radius:8px;padding:10px 14px;font-size:14p
   <h1>🌙 Form Undangan Khitan</h1>
   <p class="muted">Masuk dengan username & nomor pesanan yang diberikan admin.</p>
   <label>Username</label>
-  <input id="lgUser" placeholder="contoh: budi" autocomplete="off">
+  <input id="lgUser" placeholder="contoh: dico" autocomplete="off">
   <label>Nomor Pesanan</label>
-  <input id="lgNo" placeholder="contoh: KHT-001" autocomplete="off">
+  <input id="lgNo" placeholder="contoh: KHT-003" autocomplete="off">
   <div id="lgPesan"></div>
   <div style="margin-top:12px"><button class="btnA" style="width:100%" onclick="doLogin()">Masuk</button></div>
   <p class="muted" style="margin-top:14px">Belum punya kode pesanan?
@@ -132,7 +132,7 @@ button{cursor:pointer;border:0;border-radius:8px;padding:10px 14px;font-size:14p
       <button class="btnA" onclick="kirim()">📤 KIRIM (unduh .json)</button>
     </div>
     <div id="kirimPesan"></div>
-    <p class="muted">Setelah terunduh, kirim file .json ke admin via WA <b>0813-8701-6337</b>. Undangan akan diterbitkan & link-nya dikirim balik.</p>
+    <p class="muted">Setelah terunduh, kirim file .json ke admin untuk diterbitkan. Undangan akan diterbitkan & link-nya dikirim balik.</p>
   </div>
 </div>
 
@@ -155,6 +155,8 @@ h1.big{font-size:30px;color:var(--ac);margin:8px 0}
 .muted{opacity:.75;font-size:13px}
 .btn{display:inline-block;background:var(--ac);color:#fff;border:0;border-radius:24px;padding:11px 26px;font-size:15px;cursor:pointer;font-family:inherit}
 input,textarea{width:100%;padding:9px;border:1px solid #bbb;border-radius:8px;font-size:14px;font-family:inherit;margin-top:4px}
+.row2{display:flex;gap:8px;flex-wrap:wrap}
+.row2 .btn{flex:1}
 #cover{min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
 #cover .inner{position:relative;z-index:2;padding:30px;text-align:center;width:100%}
 #cover .bgfoto{position:absolute;inset:0;z-index:0;width:100%;height:100%;object-fit:cover}
@@ -225,7 +227,7 @@ input,textarea{width:100%;padding:9px;border:1px solid #bbb;border-radius:8px;fo
 <div id="panel" style="display:none">
   <div id="pLogin" class="cardx">
     <h2>👑 Panel Pengantar</h2>
-    <p class="muted">Masukkan nomor pesanan Anda (contoh: KHT-001)</p>
+    <p class="muted">Masukkan nomor pesanan Anda (contoh: KHT-003)</p>
     <input id="pNo" placeholder="Nomor pesanan">
     <button class="btn" style="margin-top:8px" onclick="panelLogin()">Masuk</button>
     <p id="pErr" style="color:#b00;font-size:13px;margin-top:6px"></p>
@@ -243,7 +245,7 @@ input,textarea{width:100%;padding:9px;border:1px solid #bbb;border-radius:8px;fo
       <div id="pList"></div>
       <hr style="margin:10px 0;border:0;border-top:1px solid #0002">
       <label>Template Pesan WA ({nama}, {link}, {acara})</label>
-      <textarea id="pTpl" rows="3">Assalamu'alaikum {nama}, kami sekeluarga mengundang Bapak/Ibu/Saudara/i untuk hadir pada acara khitanan {acara}. Detail undangan: {link} — Terima kasih atas doa dan kehadirannya. Wassalamu'alaikum wr. wb.</textarea>
+      <textarea id="pTpl" rows="3">Assalamu'alaikum {nama}, kami sekeluarga mengundang Bapak/Ibu/Saudara/i untuk hadir pada acara khitanan {acara}. Detail undangan: {link} — Terima kasih atas doa dan kehadirannya. Wassalamu'alaikum wr. wb.</textareaX>
       <div style="margin-top:8px" class="row2">
         <button class="btn" onclick="buatLinkSemua()">🔗 Buat Link Semua</button>
         <button class="btn" style="background:#25d366" onclick="kirimAntrean()">📨 Kirim WA (berurutan)</button>
@@ -285,7 +287,7 @@ function terapkanTema(){
 }
 function renderCover(){
  var tamu=qs("to");
- var namaTamu=tamu?esc(decodeURIComponent(tamu).replace(/_/g," ")):"Bapak/Ibu/Saudara/i";
+ var namaTamu=tamu?esc(tamu.replace(/_/g," ")):"Bapak/Ibu/Saudara/i";
  var gaya=D.gayaSampul||"foto";
  var foto=(D.foto&&D.foto.length)?D.foto[Math.min(D.sampulIdx||0,D.foto.length-1)].src:null;
  var inner=document.getElementById("coverInner");
@@ -347,7 +349,7 @@ function renderUcapan(){
  document.getElementById("gList").innerHTML=l.length?l.map(function(u){return '<div class="tamu"><b>'+esc(u.nama)+'</b><p class="muted" style="font-size:11px">'+esc(u.waktu)+'</p><p style="font-size:14px">'+esc(u.pesan)+'</p></div>'}).join(""):'<p class="muted">Belum ada ucapan. Jadilah yang pertama!</p>';
 }
 function kirimUcapan(){
- var n=document.getElementById("gNama").value.trim()||(qs("to")?decodeURIComponent(qs("to")).replace(/_/g," "):"Tamu");
+ var n=document.getElementById("gNama").value.trim()||(qs("to")?qs("to").replace(/_/g," "):"Tamu");
  var p=document.getElementById("gPesan").value.trim();
  if(!p){alert("Tulis ucapan terlebih dahulu");return}
  var l=muatUcapan();
@@ -372,7 +374,7 @@ function ptKey(){return "panelTamu_"+(D.pesananNo||"x")}
 function muatTamu(){try{return JSON.parse(localStorage.getItem(ptKey())||"[]")}catch(e){return[]}}
 function simpanTamu(l){localStorage.setItem(ptKey(),JSON.stringify(l))}
 function buatLink(nama){
- var n=nama.trim().replace(/&/g,"%26").split(/\s+/).join("_");
+ var n=nama.trim().split(/\s+/).join("_");
  return location.origin+location.pathname+"?to="+encodeURIComponent(n);
 }
 function tambahTamu(){
@@ -426,7 +428,7 @@ function kirimAntrean(){
   renderMain();
   renderUcapan();
   var tamu=qs("to");
-  if(tamu)document.getElementById("gNama").value=decodeURIComponent(tamu).replace(/_/g," ");
+  if(tamu)document.getElementById("gNama").value=tamu.replace(/_/g," ");
  }
 })();
 </script>
@@ -443,9 +445,8 @@ var SECRET_KEY = "form2026";
 var ADMIN_WA = "6281387016337";
 
 /* Ctrl+F: DAFTAR_PESANAN — isi dari generator-kode.html (jenis KHT) */
-var SECRET_KEY = "form2026";
 var DAFTAR_PESANAN = [
-    { kode:"1371txk39d5hc", label:"RElDT3xLSFQtMDAz", exp:"2026-09-30" }
+  // {kode:"xxxxxxxx", label:"base64dari(user|KHT-001)", exp:"2026-12-31"}
 ];
 
 /* Ctrl+F: STUDIO_FOTO — isi URL/dataURL foto koleksi studio; kosong = seksi disembunyikan */
@@ -481,14 +482,31 @@ var sesi = null;
 
 /* ================== LOGIN ================== */
 function doLogin(){
-  var u = document.getElementById("lgUser").value.trim().toLowerCase();
-  var n = document.getElementById("lgNo").value.trim().toUpperCase();
+  var uRaw = document.getElementById("lgUser").value.trim();
+  var nRaw = document.getElementById("lgNo").value.trim();
   var el = document.getElementById("lgPesan");
-  if(!u || !n){ el.innerHTML = '<div class="pesan err">Isi username & nomor pesanan.</div>'; return; }
-  var kode = hashKode(u + "|" + n + "|" + SECRET_KEY);
+  if(!uRaw || !nRaw){ el.innerHTML = '<div class="pesan err">Isi username & nomor pesanan.</div>'; return; }
+  var u = uRaw.toLowerCase();
+  var n = nRaw.toUpperCase();
+  /* Ctrl+F: CASEFIX — coba semua variasi besar/kecil agar cocok dgn generator */
+  var us = [u, uRaw, uRaw.toUpperCase()].filter(function(v,i,a){return a.indexOf(v)===i});
+  var ns = [n, nRaw, nRaw.toLowerCase()].filter(function(v,i,a){return a.indexOf(v)===i});
   var hit = null;
-  for (var i=0; i<DAFTAR_PESANAN.length; i++){ if (DAFTAR_PESANAN[i].kode === kode){ hit = DAFTAR_PESANAN[i]; break; } }
-  if(!hit){ el.innerHTML = '<div class="pesan err">Kombinasi tidak dikenali. Periksa username/nomor pesanan, atau <a href="https://wa.me/' + ADMIN_WA + '?text=Halo%20admin%2C%20saya%20gagal%20login%20ke%20form%20undangan%20khitan." target="_blank" rel="noopener" style="color:#9b1c1c;font-weight:700">chat admin via WA</a>.</div>'; return; }
+  for (var a=0; a<us.length && !hit; a++){
+    for (var b=0; b<ns.length && !hit; b++){
+      var kode = hashKode(us[a] + "|" + ns[b] + "|" + SECRET_KEY);
+      for (var i=0; i<DAFTAR_PESANAN.length; i++){
+        if (DAFTAR_PESANAN[i].kode === kode){ hit = DAFTAR_PESANAN[i]; break; }
+      }
+    }
+  }
+  if(!hit){
+    var dbg = (location.search.indexOf("debug=1") >= 0)
+      ? ' <span class="muted">DEBUG: isi DAFTAR_PESANAN = ' + DAFTAR_PESANAN.length + ' baris. Kode terhitung form (pola user|no huruf kecil) = <b>' + hashKode(u + "|" + n + "|" + SECRET_KEY) + '</b>. Bandingkan dengan kode keluaran generator: jika BEDA, samakan fungsi hashKode form dengan milik generator (Ctrl+F: FNVSTYLE).</span>'
+      : ' <span class="muted">Tips admin: buka halaman ini dengan tambahan <b>?debug=1</b> di ujung URL untuk melihat penyebab pasti.</span>';
+    el.innerHTML = '<div class="pesan err">Kombinasi tidak dikenali. Pastikan baris pesanan keluaran generator sudah ditempel ke DAFTAR_PESANAN pada file yang TERDEPLOY, lalu commit & tunggu Pages.' + dbg + '</div>';
+    return;
+  }
   var label = "";
   try { label = atob(hit.label); } catch(e){}
   var parts = label.split("|");
@@ -511,7 +529,7 @@ function cekSesi(){
   if (sesi && sesi.no && String(sesi.no).toUpperCase().indexOf(PREFIX) === 0){
     if (sesi.exp && new Date(sesi.exp + "T23:59:59") < new Date()){ localStorage.removeItem(SESI_KEY); sesi = null; }
   } else sesi = null;
-  if (sesi) mulaiApp(); 
+  if (sesi) mulaiApp();
 }
 function mulaiApp(){
   document.getElementById("login").style.display = "none";
