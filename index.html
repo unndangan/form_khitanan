@@ -1,0 +1,680 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Form Undangan Khitan — Buat & Kirim</title>
+<style>
+:root{--ac:#7d9b76}
+*{box-sizing:border-box}
+body{font-family:system-ui,Segoe UI,Arial,sans-serif;margin:0;background:#f0f2ef;color:#222}
+.wrap{max-width:640px;margin:0 auto;padding:16px}
+h1{font-size:22px;margin:8px 0}
+h2{font-size:16px;margin:20px 0 8px;border-bottom:2px solid var(--ac);padding-bottom:4px}
+label{display:block;font-size:13px;font-weight:600;margin:10px 0 3px}
+input,select,textarea{width:100%;padding:9px;border:1px solid #ccc;border-radius:8px;font-size:14px;background:#fff}
+button{cursor:pointer;border:0;border-radius:8px;padding:10px 14px;font-size:14px;font-weight:600}
+.btnA{background:var(--ac);color:#fff}
+.btnB{background:#e6e6e6;color:#333}
+.card{background:#fff;border:1px solid #ddd;border-radius:12px;padding:14px;margin:10px 0}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row>*{flex:1;min-width:120px}
+.temaChip{width:44px;height:44px;border-radius:50%;border:3px solid transparent}
+.temaChip.aktif{border-color:#222}
+.gayaBox{padding:8px 12px;border:2px solid #ccc;border-radius:8px;background:#fff}
+.gayaBox.aktif{border-color:var(--ac);background:#f2f8f1}
+.fotoItem{position:relative;width:96px;height:96px;border-radius:8px;overflow:hidden;display:inline-block;margin:4px;border:2px solid #ddd}
+.fotoItem img{width:100%;height:100%;object-fit:cover}
+.fotoItem .star,.fotoItem .del{position:absolute;top:2px;font-size:13px;padding:2px 6px;border-radius:6px;background:#0008;color:#fff}
+.fotoItem .star{left:2px}
+.fotoItem .del{right:2px}
+.fotoItem.sampul{border-color:#e8a13a;box-shadow:0 0 0 2px #e8a13a55}
+.pesan{padding:10px;border-radius:8px;margin:8px 0;font-size:13px}
+.err{background:#fde8e8;color:#9b1c1c}
+.ok{background:#e7f6e9;color:#1c6b2c}
+.muted{color:#777;font-size:12px}
+#login{max-width:380px;margin:12vh auto}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ============ LOGIN ============ -->
+<div id="login" class="card">
+  <h1>🌙 Form Undangan Khitan</h1>
+  <p class="muted">Masuk dengan username & nomor pesanan yang diberikan admin.</p>
+  <label>Username</label>
+  <input id="lgUser" placeholder="contoh: budi" autocomplete="off">
+  <label>Nomor Pesanan</label>
+  <input id="lgNo" placeholder="contoh: KHT-001" autocomplete="off">
+  <div id="lgPesan"></div>
+  <div style="margin-top:12px"><button class="btnA" style="width:100%" onclick="doLogin()">Masuk</button></div>
+  <p class="muted" style="margin-top:14px">Belum punya kode pesanan? Hubungi admin WA <b>0813-8701-6337</b></p>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app" style="display:none">
+  <div class="card">
+    <div class="row" style="align-items:center">
+      <div><b id="infoPesanan"></b> <span class="muted" id="infoExp"></span></div>
+      <div style="flex:0"><button class="btnB" onclick="doLogout()">Keluar</button></div>
+    </div>
+  </div>
+
+  <h2>👦 Data Anak</h2>
+  <div class="card">
+    <label>Nama Panggilan / Pendek (jadi judul repo)*</label>
+    <input id="fNamaAnak" placeholder="contoh: Rafi" oninput="simpan()">
+    <label>Nama Lengkap Ananda*</label>
+    <input id="fNamaLengkap" placeholder="contoh: Muhammad Rafi Pratama" oninput="simpan()">
+    <label>Nama Ayah</label>
+    <input id="fAyah" placeholder="Bapak ..." oninput="simpan()">
+    <label>Nama Ibu</label>
+    <input id="fIbu" placeholder="Ibu ..." oninput="simpan()">
+    <label>Doa / Kata Pembuka</label>
+    <textarea id="fPesan" rows="3" placeholder="Dengan memohon rahmat dan ridho Allah SWT, kami mengundang Bapak/Ibu/Saudara/i untuk hadir pada acara khitanan putra kami..." oninput="simpan()"></textarea>
+  </div>
+
+  <h2>📅 Acara & Tempat</h2>
+  <div class="card">
+    <label>Tanggal Acara*</label>
+    <input type="date" id="fTanggal" oninput="simpan()">
+    <div class="row">
+      <div><label>Jam Mulai</label><input type="time" id="fJam" value="09:00" oninput="simpan()"></div>
+      <div><label>Jam Selesai (opsional)</label><input type="time" id="fJam2" oninput="simpan()"></div>
+    </div>
+    <label>Nama Tempat</label>
+    <input id="fTempat" placeholder="contoh: Kediaman Bpk. Ahmad" oninput="simpan()">
+    <label>Alamat Lengkap*</label>
+    <textarea id="fAlamat" rows="2" placeholder="Jl. ... No. ..., Kel. ..., Kec. ..., Kota ..." oninput="simpan()"></textarea>
+    <label>Link Google Maps</label>
+    <input id="fMap" placeholder="https://maps.google.com/?q=..." oninput="simpan()">
+    <p class="muted">Tempel link dari aplikasi Maps (tombol Bagikan → Salin link).</p>
+  </div>
+
+  <h2>🎨 Tema & Warna</h2>
+  <div class="card">
+    <label>Tema (8 pilihan)</label>
+    <div class="row" id="temaList"></div>
+    <label>Warna Custom (opsional, menimpa aksen tema)</label>
+    <input type="color" id="fWarna" value="#7d9b76" oninput="simpan()">
+    <label>Gaya Sampul</label>
+    <div class="row">
+      <button class="gayaBox" data-gaya="foto" onclick="setGaya('foto')">🖼️ Foto</button>
+      <button class="gayaBox" data-gaya="elegan" onclick="setGaya('elegan')">✨ Elegan</button>
+      <button class="gayaBox" data-gaya="minimalis" onclick="setGaya('minimalis')">◽ Minimalis</button>
+    </div>
+  </div>
+
+  <h2>📷 Foto (Galeri & Sampul)</h2>
+  <div class="card">
+    <input type="file" id="fFotoIn" accept="image/*" multiple onchange="uploadFoto(this.files)">
+    <p class="muted">Otomatis dikompresi (maks 1280px, q0.78). Klik ⭐ untuk jadikan sampul, 🗑 untuk hapus.</p>
+    <div id="fotoList"></div>
+    <div id="studioBox" style="display:none">
+      <label>🎞️ Koleksi Studio (pilih untuk ditambahkan)</label>
+      <div id="studioList"></div>
+    </div>
+  </div>
+
+  <h2>🎵 Musik</h2>
+  <div class="card">
+    <label>URL Musik (mp3, opsional)</label>
+    <input id="fMusik" placeholder="https://.../sholawat.mp3" oninput="simpan()">
+  </div>
+
+  <h2>✅ Selesai</h2>
+  <div class="card">
+    <div class="row">
+      <button class="btnB" onclick="preview()">👁️ Preview</button>
+      <button class="btnA" onclick="kirim()">📤 KIRIM (unduh .json)</button>
+    </div>
+    <div id="kirimPesan"></div>
+    <p class="muted">Setelah terunduh, kirim file .json ke admin via WA <b>0813-8701-6337</b>. Undangan akan diterbitkan & link-nya dikirim balik.</p>
+  </div>
+</div>
+
+<!-- ============ TEMPLATE UNDANGAN (jangan diedit manual) ============ -->
+<textarea id="tpl" style="display:none">
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Undangan Khitanan</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f1f5ef;--fg:#3f5240;--ac:#7d9b76;--card:#fff}
+body{font-family:Georgia,'Times New Roman',serif;background:var(--bg);color:var(--fg)}
+.page{max-width:480px;margin:0 auto;min-height:100vh;background:var(--bg)}
+.sec{padding:34px 22px;text-align:center}
+.cardx{background:var(--card);border-radius:14px;padding:16px;margin:10px 0;box-shadow:0 2px 8px #0001;text-align:left}
+h1.big{font-size:30px;color:var(--ac);margin:8px 0}
+.muted{opacity:.75;font-size:13px}
+.btn{display:inline-block;background:var(--ac);color:#fff;border:0;border-radius:24px;padding:11px 26px;font-size:15px;cursor:pointer;font-family:inherit}
+input,textarea{width:100%;padding:9px;border:1px solid #bbb;border-radius:8px;font-size:14px;font-family:inherit;margin-top:4px}
+#cover{min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+#cover .inner{position:relative;z-index:2;padding:30px;text-align:center;width:100%}
+#cover .bgfoto{position:absolute;inset:0;z-index:0;width:100%;height:100%;object-fit:cover}
+#cover .overlay{position:absolute;inset:0;z-index:1;background:#0007}
+.frame{border:2px solid var(--ac);border-radius:14px;padding:26px 18px;background:var(--card)}
+.gal{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.gal img{width:31%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:pointer}
+#musicBtn{position:fixed;right:14px;bottom:14px;z-index:99;width:46px;height:46px;border-radius:50%;background:var(--ac);color:#fff;font-size:20px;border:0;cursor:pointer}
+.tamu{border-bottom:1px solid #0002;padding:10px 2px}
+.tamu b{color:var(--ac)}
+#panel{max-width:480px;margin:0 auto;padding:16px;font-family:system-ui,sans-serif}
+#panel .cardx{font-family:system-ui,sans-serif}
+.q{background:#fff8e6;border:1px solid #e8cf7a;border-radius:10px;padding:10px;margin:6px 0;font-size:13px;display:flex;gap:8px;align-items:center;justify-content:space-between}
+</style>
+</head>
+<body>
+<div class="page">
+
+<div id="cover">
+  <div class="inner" id="coverInner"></div>
+</div>
+
+<div id="main" style="display:none">
+  <div class="sec">
+    <p class="muted">Bismillahirrahmanirrahim</p>
+    <p class="muted">Assalamu'alaikum Warahmatullahi Wabarakatuh</p>
+    <p style="margin-top:14px" id="tPesan"></p>
+  </div>
+  <div class="sec" style="padding-top:0">
+    <p class="muted">Khitanan Ananda</p>
+    <h1 class="big" id="tNama"></h1>
+    <p id="tOrtu" class="muted"></p>
+    <div id="tFotoBesar" style="margin-top:12px"></div>
+  </div>
+  <div class="sec" style="padding-top:0">
+    <div class="cardx" style="text-align:center">
+      <p class="muted">Insya Allah dilaksanakan pada</p>
+      <h2 id="tTanggal" style="color:var(--ac);margin:8px 0"></h2>
+      <p id="tJam"></p>
+      <p id="tTempat" style="margin-top:8px"></p>
+      <p class="muted" id="tAlamat"></p>
+      <div id="tMap" style="margin-top:10px"></div>
+      <p id="tHitung" style="margin-top:10px;font-weight:bold;color:var(--ac)"></p>
+    </div>
+  </div>
+  <div class="sec" id="secGal" style="padding-top:0;display:none">
+    <h2 style="color:var(--ac)">📷 Galeri</h2>
+    <div class="gal" id="tGal"></div>
+  </div>
+  <div class="sec" style="padding-top:0">
+    <h2 style="color:var(--ac)">💌 Buku Tamu</h2>
+    <div class="cardx">
+      <label>Nama</label>
+      <input id="gNama">
+      <label style="display:block;margin-top:8px">Ucapan & Doa</label>
+      <textarea id="gPesan" rows="3"></textareaX>
+      <button class="btn" style="margin-top:8px;width:100%" onclick="kirimUcapan()">Kirim Ucapan</button>
+    </div>
+    <div id="gList" style="text-align:left"></div>
+  </div>
+  <div class="sec" style="padding-top:0">
+    <p class="muted">Merupakan suatu kehormatan dan kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir dan memberikan doa restu.</p>
+    <p style="margin-top:12px">Wassalamu'alaikum Warahmatullahi Wabarakatuh</p>
+    <p class="muted" style="margin-top:8px" id="tKeluarga"></p>
+  </div>
+</div>
+
+<div id="panel" style="display:none">
+  <div id="pLogin" class="cardx">
+    <h2>👑 Panel Pengantar</h2>
+    <p class="muted">Masukkan nomor pesanan Anda (contoh: KHT-001)</p>
+    <input id="pNo" placeholder="Nomor pesanan">
+    <button class="btn" style="margin-top:8px" onclick="panelLogin()">Masuk</button>
+    <p id="pErr" style="color:#b00;font-size:13px;margin-top:6px"></p>
+  </div>
+  <div id="pBody" style="display:none">
+    <div class="cardx">
+      <h2>👑 Panel Pengantar</h2>
+      <p class="muted" id="pInfo"></p>
+      <label>Nama Tamu</label><input id="pNama" placeholder="Nama tamu">
+      <label>No. WA Tamu (08xx)</label><input id="pWa" placeholder="0812xxxxxxx">
+      <button class="btn" style="margin-top:8px;width:100%" onclick="tambahTamu()">➕ Tambah Tamu</button>
+    </div>
+    <div class="cardx">
+      <b>Daftar Tamu</b>
+      <div id="pList"></div>
+      <hr style="margin:10px 0;border:0;border-top:1px solid #0002">
+      <label>Template Pesan WA ({nama}, {link}, {acara})</label>
+      <textarea id="pTpl" rows="3">Assalamu'alaikum {nama}, kami sekeluarga mengundang Bapak/Ibu/Saudara/i untuk hadir pada acara khitanan {acara}. Detail undangan: {link} — Terima kasih atas doa dan kehadirannya. Wassalamu'alaikum wr. wb.</textarea>
+      <div style="margin-top:8px" class="row2">
+        <button class="btn" onclick="buatLinkSemua()">🔗 Buat Link Semua</button>
+        <button class="btn" style="background:#25d366" onclick="kirimAntrean()">📨 Kirim WA (berurutan)</button>
+      </div>
+      <p class="muted" style="margin-top:6px" id="pAntre"></p>
+    </div>
+  </div>
+</div>
+
+</div>
+<button id="musicBtn" style="display:none" onclick="toggleMusik()">🎵</button>
+<audio id="au" loop></audio>
+
+<script>
+var DATA_EMBED = null;
+var D = DATA_EMBED || {};
+var THEMES={
+ klasik:{bg:"#f7f1e3",fg:"#5a4632",ac:"#b08d57",card:"#fffdf7"},
+ rosegold:{bg:"#fdf2f0",fg:"#6e4a45",ac:"#c98a7d",card:"#fff"},
+ sage:{bg:"#f1f5ef",fg:"#3f5240",ac:"#7d9b76",card:"#fff"},
+ navy:{bg:"#0f1d33",fg:"#eaf0fa",ac:"#8fb0e3",card:"#16294a"},
+ lavender:{bg:"#f4f0fa",fg:"#4c3f66",ac:"#9b7fd4",card:"#fff"},
+ maroon:{bg:"#2b0f12",fg:"#f7e9ea",ac:"#c96f7a",card:"#3a1a1e"},
+ gold:{bg:"#1c1708",fg:"#f5ecd2",ac:"#d4af37",card:"#26200e"},
+ pastel:{bg:"#fdf6f9",fg:"#5c5470",ac:"#f2a6c0",card:"#fff"}
+};
+function qs(k){var m=location.search.match(new RegExp("[?&]"+k+"=([^&]*)"));return m?decodeURIComponent(m[1]):null}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+function normWA(t){t=(t||"").replace(/\D/g,"");if(t.indexOf("0")===0)t="62"+t.slice(1);else if(t.indexOf("8")===0)t="62"+t.slice(1);return t}
+function tglPanjang(s){if(!s)return"";try{var d=new Date(s+"T00:00:00");var h=["Ahad","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];var b=["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];return h[d.getDay()]+", "+d.getDate()+" "+b[d.getMonth()]+" "+d.getFullYear()}catch(e){return s}}
+function mapEmbed(link){if(!link)return"";var q=encodeURIComponent(link.replace(/^https?:\/\/(www\.)?(google\.[^/]+\/maps\/place\/[^?]+|maps\.google\.[^?]+|goo\.gl\/maps\/\S+)/i,"$&"));var m=link.match(/[?&]q=([^&]+)/);var target=m?m[1]:encodeURIComponent(link);return '<iframe src="https://maps.google.com/maps?q='+target+'&output=embed" width="100%" height="220" style="border:0;border-radius:10px" loading="lazy"></iframe>'}
+
+function terapkanTema(){
+ var t=THEMES[D.tema]||THEMES.sage;
+ var r=document.documentElement.style;
+ r.setProperty("--bg",t.bg);r.setProperty("--fg",t.fg);r.setProperty("--card",t.card);
+ r.setProperty("--ac",D.warnaCustom||t.ac);
+ document.title="Khitanan "+(D.namaAnak||"");
+}
+function renderCover(){
+ var tamu=qs("to");
+ var namaTamu=tamu?esc(tamu.replace(/_/g," ")).replace(/%26/g,"&"):"Bapak/Ibu/Saudara/i";
+ var gaya=D.gayaSampul||"foto";
+ var foto=(D.foto&&D.foto.length)?D.foto[Math.min(D.sampulIdx||0,D.foto.length-1)].src:null;
+ var inner=document.getElementById("coverInner");
+ var isi='<p class="muted">Undangan Khitanan</p><h1 class="big">'+esc(D.namaAnak||"")+'</h1>'+
+  '<p class="muted">'+esc(tglPanjang(D.tanggal))+'</p>'+
+  '<div style="margin:22px 0"><p class="muted">Kepada Yth. Bapak/Ibu/Saudara/i</p><b style="font-size:18px;color:var(--ac)">'+namaTamu+'</b></div>'+
+  '<button class="btn" onclick="bukaUndangan()">💌 Buka Undangan</button>';
+ var cov=document.getElementById("cover");
+ if(gaya==="foto"&&foto){
+  cov.innerHTML='<img class="bgfoto" src="'+foto+'"><div class="overlay"></div><div class="inner" id="coverInner">'+isi.replace(/class="muted"/g,'class="muted" style="color:#fff"')+'</div>';
+  cov.querySelector(".inner").style.color="#fff";
+  cov.querySelectorAll(".big").forEach(function(e){e.style.color="#fff"});
+ }else if(gaya==="elegan"){
+  inner.innerHTML='<div class="frame">'+isi+'</div>';
+ }else{
+  inner.innerHTML=isi;
+ }
+}
+function bukaUndangan(){
+ document.getElementById("cover").style.display="none";
+ document.getElementById("main").style.display="block";
+ if(D.musik){var a=document.getElementById("au");a.src=D.musik;a.play().catch(function(){});document.getElementById("musicBtn").style.display="block"}
+ window.scrollTo(0,0);
+}
+function toggleMusik(){var a=document.getElementById("au");if(a.paused){a.play();document.getElementById("musicBtn").textContent="🎵"}else{a.pause();document.getElementById("musicBtn").textContent="🔇"}}
+function renderMain(){
+ document.getElementById("tPesan").textContent=D.pesan||"Dengan memohon rahmat dan ridho Allah SWT, kami mengundang Bapak/Ibu/Saudara/i untuk hadir pada acara khitanan putra kami:";
+ document.getElementById("tNama").textContent=D.namaLengkap||D.namaAnak||"";
+ var ortu=[];if(D.ayah)ortu.push("Bpk. "+D.ayah);if(D.ibu)ortu.push("Ibu "+D.ibu);
+ document.getElementById("tOrtu").textContent=ortu.length?("Putra dari "+ortu.join(" & ")):"";
+ var foto=(D.foto&&D.foto.length)?D.foto[Math.min(D.sampulIdx||0,D.foto.length-1)].src:null;
+ document.getElementById("tFotoBesar").innerHTML=foto?'<img src="'+foto+'" style="width:70%;max-width:280px;border-radius:14px">':"";
+ document.getElementById("tTanggal").textContent=tglPanjang(D.tanggal);
+ var jam=D.jam?("Pukul "+D.jam+(D.jam2?" – "+D.jam2+" WIB":" WIB")):"";
+ document.getElementById("tJam").textContent=jam;
+ document.getElementById("tTempat").innerHTML="<b>"+esc(D.tempat||"")+"</b>";
+ document.getElementById("tAlamat").textContent=D.alamat||"";
+ document.getElementById("tMap").innerHTML=mapEmbed(D.map||"");
+ document.getElementById("tKeluarga").textContent=ortu.length?("Kami yang berbahagia,\n"+ortu.join(" & ")):"";
+ if(D.foto&&D.foto.length){
+  document.getElementById("secGal").style.display="block";
+  document.getElementById("tGal").innerHTML=D.foto.map(function(f){return '<img src="'+f.src+'" onclick="window.open(this.src)">'}).join("");
+ }
+ hitungMundur();setInterval(hitungMundur,1000);
+}
+function hitungMundur(){
+ if(!D.tanggal)return;
+ var el=document.getElementById("tHitung");
+ var t=new Date(D.tanggal+"T"+(D.jam||"00:00")+":00").getTime()-Date.now();
+ if(t<=0){el.textContent="🎉 Acara sedang berlangsung / telah selesai";return}
+ var d=Math.floor(t/864e5),h=Math.floor(t/36e5)%24,m=Math.floor(t/6e4)%60,s=Math.floor(t/1e3)%60;
+ el.textContent="⏳ "+d+" hari "+h+" jam "+m+" menit "+s+" detik lagi";
+}
+/* ---- Buku tamu ---- */
+function btKey(){return "ucapanTamu"}
+function muatUcapan(){try{return JSON.parse(localStorage.getItem(btKey())||"[]")}catch(e){return[]}}
+function renderUcapan(){
+ var l=muatUcapan();
+ document.getElementById("gList").innerHTML=l.length?l.map(function(u){return '<div class="tamu"><b>'+esc(u.nama)+'</b><p class="muted" style="font-size:11px">'+esc(u.waktu)+'</p><p style="font-size:14px">'+esc(u.pesan)+'</p></div>'}).join(""):'<p class="muted">Belum ada ucapan. Jadilah yang pertama!</p>';
+}
+function kirimUcapan(){
+ var n=document.getElementById("gNama").value.trim()||qs("to")&&decodeURIComponent(qs("to")).replace(/_/g," ")||"Tamu";
+ var p=document.getElementById("gPesan").value.trim();
+ if(!p){alert("Tulis ucapan terlebih dahulu");return}
+ var l=muatUcapan();
+ l.unshift({nama:n,pesan:p,waktu:new Date().toLocaleString("id-ID")});
+ localStorage.setItem(btKey(),JSON.stringify(l.slice(0,200)));
+ document.getElementById("gNama").value="";document.getElementById("gPesan").value="";
+ renderUcapan();
+}
+/* ---- Panel Pengantar ---- */
+var panelIdx=0;
+function panelLogin(){
+ var no=document.getElementById("pNo").value.trim().toUpperCase();
+ if(!D.pesananNo){document.getElementById("pErr").textContent="Data pesanan tidak ditemukan.";return}
+ if(no===String(D.pesananNo).toUpperCase()){
+  document.getElementById("pLogin").style.display="none";
+  document.getElementById("pBody").style.display="block";
+  document.getElementById("pInfo").textContent="Pesanan: "+D.pesananNo+" — "+(D.namaAnak||"");
+  renderTamu();
+ }else document.getElementById("pErr").textContent="Nomor pesanan salah.";
+}
+function ptKey(){return "panelTamu_"+(D.pesananNo||"x")}
+function muatTamu(){try{return JSON.parse(localStorage.getItem(ptKey())||"[]")}catch(e){return[]}}
+function simpanTamu(l){localStorage.setItem(ptKey(),JSON.stringify(l))}
+function buatLink(nama){
+ var n=nama.trim().replace(/&/g,"%26").split(/\s+/).join("_");
+ return location.origin+location.pathname+"?to="+encodeURIComponent(n);
+}
+function tambahTamu(){
+ var n=document.getElementById("pNama").value.trim();
+ var w=document.getElementById("pWa").value.trim();
+ if(!n){alert("Nama tamu wajib diisi");return}
+ var l=muatTamu();
+ l.push({nama:n,wa:w,link:buatLink(n),terkirim:false});
+ simpanTamu(l);
+ document.getElementById("pNama").value="";document.getElementById("pWa").value="";
+ renderTamu();
+}
+function hapusTamu(i){var l=muatTamu();l.splice(i,1);simpanTamu(l);renderTamu()}
+function buatLinkSemua(){var l=muatTamu();l.forEach(function(t){t.link=buatLink(t.nama)});simpanTamu(l);renderTamu();alert("Link semua tamu diperbarui ✅")}
+function renderTamu(){
+ var l=muatTamu();
+ document.getElementById("pList").innerHTML=l.length?l.map(function(t,i){
+  return '<div class="q"><span><b>'+esc(t.nama)+'</b> <span class="muted" style="font-size:11px">'+(t.wa?normWA(t.wa):"tanpa WA")+' '+(t.terkirim?"✅":"")+'</span></span>'+
+  '<span><button class="btn" style="padding:5px 9px;font-size:12px" onclick="window.open(\''+t.link.replace(/'/g,"%27")+'\')">🔗</button> '+
+  '<button class="btn" style="padding:5px 9px;font-size:12px;background:#b00" onclick="hapusTamu('+i+')">🗑</button></span></div>';
+ }).join(""):'<p class="muted">Belum ada tamu. Tambahkan di atas.</p>';
+ panelIdx=0;
+ for(var i=0;i<l.length;i++){if(!l[i].terkirim){panelIdx=i;break}panelIdx=l.length}
+ var sisa=l.filter(function(t){return !t.terkirim&&t.wa}).length;
+ document.getElementById("pAntre").textContent=sisa?("Antrean: "+sisa+" tamu belum dikirimi WA. Tekan tombol 📨 berulang — 1 klik = 1 tab WA."):"";
+}
+function kirimAntrean(){
+ var l=muatTamu();
+ var acara=(D.namaAnak||"")+" — "+tglPanjang(D.tanggal);
+ var tpl=document.getElementById("pTpl").value;
+ var ketemu=false;
+ for(var i=panelIdx;i<l.length;i++){
+  var t=l[i];
+  if(t.terkirim||!t.wa)continue;
+  var pesan=tpl.split("{nama}").join(t.nama).split("{link}").join(t.link).split("{acara}").join(acara);
+  window.open("https://wa.me/"+normWA(t.wa)+"?text="+encodeURIComponent(pesan));
+  t.terkirim=true;simpanTamu(l);panelIdx=i+1;ketemu=true;
+  break;
+ }
+ if(!ketemu)alert("Tidak ada antrean tersisa (atau tamu tanpa nomor WA).");
+ renderTamu();
+}
+/* ---- init ---- */
+(function(){
+ terapkanTema();
+ if(qs("panel")!==null&&D.pesananNo){
+  document.getElementById("cover").style.display="none";
+  document.getElementById("panel").style.display="block";
+ }else{
+  renderCover();
+  renderMain();
+  renderUcapan();
+  var tamu=qs("to");
+  if(tamu)document.getElementById("gNama").value=decodeURIComponent(tamu).replace(/_/g," ");
+ }
+})();
+</script>
+</body>
+</html>
+</textareaX>
+
+<script>
+/* ================== KONFIG FORM ================== */
+var JENIS = "KHT";
+var PREFIX = "KHT";
+var FIELD_JUDUL = "namaAnak";
+var SECRET_KEY = "form2026";
+var ADMIN_WA = "6281387016337";
+
+/* Ctrl+F: DAFTAR_PESANAN — isi dari generator-kode.html (jenis KHT) */
+var DAFTAR_PESANAN = [
+  // {kode:"xxxxxxxx", label:"base64dari(user|KHT-001)", exp:"2026-12-31"}
+];
+
+/* Ctrl+F: STUDIO_FOTO — isi URL/dataURL foto koleksi studio; kosong = seksi disembunyikan */
+var STUDIO_FOTO = [
+  // {src:"https://.../foto1.jpg", nama:"Studio 1"}
+];
+
+/* Ctrl+F: FNVSTYLE — WAJIB identik dengan hashKode di form_pernikahan FINAL & generator */
+function hashKode(str){
+  var h = 0x811c9dc5;
+  for (var i = 0; i < str.length; i++){
+    h ^= str.charCodeAt(i);
+    h = (h + ((h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24))) >>> 0;
+  }
+  return h.toString(36);
+}
+
+var THEMES = {
+  klasik:{bg:"#f7f1e3",ac:"#b08d57"},
+  rosegold:{bg:"#fdf2f0",ac:"#c98a7d"},
+  sage:{bg:"#f1f5ef",ac:"#7d9b76"},
+  navy:{bg:"#0f1d33",ac:"#8fb0e3"},
+  lavender:{bg:"#f4f0fa",ac:"#9b7fd4"},
+  maroon:{bg:"#2b0f12",ac:"#c96f7a"},
+  gold:{bg:"#1c1708",ac:"#d4af37"},
+  pastel:{bg:"#fdf6f9",ac:"#f2a6c0"}
+};
+
+var DRAFT_KEY = "dataUndanganKHT";
+var SESI_KEY = "sesiPesanan";
+var state = { tema:"sage", gayaSampul:"elegan", foto:[], sampulIdx:0 };
+var sesi = null;
+
+/* ================== LOGIN ================== */
+function doLogin(){
+  var u = document.getElementById("lgUser").value.trim().toLowerCase();
+  var n = document.getElementById("lgNo").value.trim().toUpperCase();
+  var el = document.getElementById("lgPesan");
+  if(!u || !n){ el.innerHTML = '<div class="pesan err">Isi username & nomor pesanan.</div>'; return; }
+  var kode = hashKode(u + "|" + n + "|" + SECRET_KEY);
+  var hit = null;
+  for (var i=0; i<DAFTAR_PESANAN.length; i++){ if (DAFTAR_PESANAN[i].kode === kode){ hit = DAFTAR_PESANAN[i]; break; } }
+  if(!hit){ el.innerHTML = '<div class="pesan err">Kombinasi tidak dikenali. Periksa username/nomor pesanan, atau hubungi admin.</div>'; return; }
+  var label = "";
+  try { label = atob(hit.label); } catch(e){}
+  var parts = label.split("|");
+  if (parts[0].toLowerCase() !== u || parts[1].toUpperCase() !== n){
+    el.innerHTML = '<div class="pesan err">Data pesanan tidak cocok.</div>'; return;
+  }
+  if (hit.exp && new Date(hit.exp + "T23:59:59") < new Date()){
+    el.innerHTML = '<div class="pesan err">Pesanan sudah kedaluwarsa ('+hit.exp+'). Hubungi admin.</div>'; return;
+  }
+  sesi = { user:u, no:n, exp:hit.exp||"" };
+  localStorage.setItem(SESI_KEY, JSON.stringify(sesi));
+  mulaiApp();
+}
+function doLogout(){
+  localStorage.removeItem(SESI_KEY);
+  location.reload();
+}
+function cekSesi(){
+  try { sesi = JSON.parse(localStorage.getItem(SESI_KEY) || "null"); } catch(e){ sesi = null; }
+  if (sesi && sesi.no && String(sesi.no).toUpperCase().indexOf(PREFIX) === 0){
+    if (sesi.exp && new Date(sesi.exp + "T23:59:59") < new Date()){ localStorage.removeItem(SESI_KEY); sesi = null; }
+  } else sesi = null;
+  if (sesi) mulaiApp(); 
+}
+function mulaiApp(){
+  document.getElementById("login").style.display = "none";
+  document.getElementById("app").style.display = "block";
+  document.getElementById("infoPesanan").textContent = "Pesanan " + sesi.no + " — " + sesi.user;
+  document.getElementById("infoExp").textContent = sesi.exp ? ("Berlaku s/d " + sesi.exp) : "";
+  renderTema(); setGaya(state.gayaSampul, true); muatDraft(); renderFoto(); renderStudio();
+}
+
+/* ================== TEMA & GAYA ================== */
+function renderTema(){
+  var box = document.getElementById("temaList"); box.innerHTML = "";
+  Object.keys(THEMES).forEach(function(k){
+    var b = document.createElement("button");
+    b.className = "temaChip" + (state.tema === k ? " aktif" : "");
+    b.style.background = "linear-gradient(135deg," + THEMES[k].bg + " 50%," + THEMES[k].ac + " 50%)";
+    b.title = k;
+    b.onclick = function(){ state.tema = k; renderTema(); simpan(); };
+    box.appendChild(b);
+  });
+}
+function setGaya(g, silent){
+  state.gayaSampul = g;
+  document.querySelectorAll(".gayaBox").forEach(function(b){
+    b.classList.toggle("aktif", b.getAttribute("data-gaya") === g);
+  });
+  if (!silent) simpan();
+}
+
+/* ================== FOTO ================== */
+function kompres(file, cb){
+  var fr = new FileReader();
+  fr.onload = function(){
+    var img = new Image();
+    img.onload = function(){
+      var m = 1280, w = img.width, h = img.height;
+      if (w > h && w > m){ h = h * m / w; w = m; }
+      else if (h >= w && h > m){ w = w * m / h; h = m; }
+      var c = document.createElement("canvas");
+      c.width = w; c.height = h;
+      c.getContext("2d").drawImage(img, 0, 0, w, h);
+      cb(c.toDataURL("image/jpeg", 0.78));
+    };
+    img.onerror = function(){ alert("Gagal membaca gambar: " + file.name); };
+    img.src = fr.result;
+  };
+  fr.readAsDataURL(file);
+}
+function uploadFoto(files){
+  var arr = Array.prototype.slice.call(files);
+  var sisa = arr.length;
+  arr.forEach(function(f){
+    kompres(f, function(dataUrl){
+      state.foto.push({ src:dataUrl, nama:f.name });
+      if (--sisa === 0){ renderFoto(); simpan(); }
+    });
+  });
+}
+function hapusFoto(i){ state.foto.splice(i,1); if (state.sampulIdx >= state.foto.length) state.sampulIdx = 0; renderFoto(); simpan(); }
+function setSampul(i){ state.sampulIdx = i; renderFoto(); simpan(); }
+function renderFoto(){
+  var box = document.getElementById("fotoList");
+  box.innerHTML = state.foto.map(function(f,i){
+    return '<span class="fotoItem' + (i === state.sampulIdx ? " sampul" : "") + '">' +
+      '<img src="' + f.src + '">' +
+      '<button class="star" title="Jadikan sampul" onclick="setSampul(' + i + ')">⭐</button>' +
+      '<button class="del" title="Hapus" onclick="hapusFoto(' + i + ')">🗑</button></span>';
+  }).join("") || '<p class="muted">Belum ada foto.</p>';
+}
+function renderStudio(){
+  if (!STUDIO_FOTO.length) return;
+  document.getElementById("studioBox").style.display = "block";
+  document.getElementById("studioList").innerHTML = STUDIO_FOTO.map(function(f,i){
+    return '<span class="fotoItem"><img src="' + f.src + '" title="' + (f.nama||"") + '" onclick="pakaiStudio(' + i + ')" style="cursor:pointer"></span>';
+  }).join("");
+}
+function pakaiStudio(i){ state.foto.push({ src:STUDIO_FOTO[i].src, nama:STUDIO_FOTO[i].nama||("studio"+i) }); renderFoto(); simpan(); }
+
+/* ================== DATA & DRAFT ================== */
+function kumpulData(){
+  return {
+    jenis: JENIS,
+    pesananNo: sesi ? sesi.no : "",
+    user: sesi ? sesi.user : "",
+    tema: state.tema,
+    warnaCustom: document.getElementById("fWarna").value !== "#7d9b76" ? document.getElementById("fWarna").value : "",
+    gayaSampul: state.gayaSampul,
+    namaAnak: document.getElementById("fNamaAnak").value.trim(),
+    namaLengkap: document.getElementById("fNamaLengkap").value.trim(),
+    ayah: document.getElementById("fAyah").value.trim(),
+    ibu: document.getElementById("fIbu").value.trim(),
+    pesan: document.getElementById("fPesan").value.trim(),
+    tanggal: document.getElementById("fTanggal").value,
+    jam: document.getElementById("fJam").value,
+    jam2: document.getElementById("fJam2").value,
+    tempat: document.getElementById("fTempat").value.trim(),
+    alamat: document.getElementById("fAlamat").value.trim(),
+    map: document.getElementById("fMap").value.trim(),
+    musik: document.getElementById("fMusik").value.trim(),
+    foto: state.foto,
+    sampulIdx: state.sampulIdx
+  };
+}
+function simpan(){
+  if (!sesi) return;
+  try { localStorage.setItem(DRAFT_KEY, JSON.stringify(kumpulData())); } catch(e){ alert("Penyimpanan penuh — kurangi jumlah foto."); }
+}
+function muatDraft(){
+  var d = null;
+  try { d = JSON.parse(localStorage.getItem(DRAFT_KEY) || "null"); } catch(e){}
+  if (!d) return;
+  if (d.pesananNo && sesi && d.pesananNo !== sesi.no) return; /* draft milik pesanan lain */
+  var map = { namaAnak:"fNamaAnak", namaLengkap:"fNamaLengkap", ayah:"fAyah", ibu:"fIbu", pesan:"fPesan", tanggal:"fTanggal", jam:"fJam", jam2:"fJam2", tempat:"fTempat", alamat:"fAlamat", map:"fMap", musik:"fMusik" };
+  Object.keys(map).forEach(function(k){ if (d[k] != null) document.getElementById(map[k]).value = d[k]; });
+  if (d.tema && THEMES[d.tema]) state.tema = d.tema;
+  if (d.warnaCustom) document.getElementById("fWarna").value = d.warnaCustom;
+  if (Array.isArray(d.foto)) state.foto = d.foto;
+  if (typeof d.sampulIdx === "number") state.sampulIdx = d.sampulIdx;
+  renderTema(); setGaya(d.gayaSampul || "elegan", true);
+}
+
+/* ================== TEMPLATE / PREVIEW / KIRIM ================== */
+function bangunHTML(data){
+  var tpl = document.getElementById("tpl").value.split("</textareaX>").join("</textarea>");
+  var json = JSON.stringify(data).replace(/<\/script/gi, "<\\/script");
+  return tpl.replace("var DATA_EMBED = null;", "var DATA_EMBED = " + json + ";");
+}
+function validasi(d, elPesan){
+  var wajib = [["namaAnak","Nama Panggilan/Pendek"],["namaLengkap","Nama Lengkap"],["tanggal","Tanggal Acara"],["alamat","Alamat"]];
+  for (var i=0;i<wajib.length;i++){
+    if (!d[wajib[i][0]]){ elPesan.innerHTML = '<div class="pesan err">Wajib diisi: ' + wajib[i][1] + '</div>'; return false; }
+  }
+  elPesan.innerHTML = "";
+  return true;
+}
+function preview(){
+  var d = kumpulData();
+  if (!validasi(d, document.getElementById("kirimPesan"))) return;
+  var w = window.open();
+  if (!w){ alert("Popup diblokir browser. Izinkan popup untuk preview."); return; }
+  w.document.open(); w.document.write(bangunHTML(d)); w.document.close();
+}
+function slug(s){
+  return String(s).toLowerCase()
+    .split("&").join(" dan ")
+    .replace(/[^a-z0-9\s-]/g,"")
+    .trim().split(/\s+/).join("-");
+}
+function kirim(){
+  var d = kumpulData();
+  var elPesan = document.getElementById("kirimPesan");
+  if (!validasi(d, elPesan)) return;
+  var paket = { jenis: JENIS, pesanan: { no: sesi.no, user: sesi.user, exp: sesi.exp }, data: d, waktu: new Date().toISOString() };
+  var namaFile = PREFIX + "_" + sesi.no + "_" + slug(d[FIELD_JUDUL] || "undangan") + ".json";
+  var blob = new Blob([JSON.stringify(paket)], { type:"application/json" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = namaFile;
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  elPesan.innerHTML = '<div class="pesan ok">✅ Paket <b>' + namaFile + '</b> terunduh. Kirim ke admin WA 0813-8701-6337 untuk diterbitkan.</div>';
+  try { localStorage.removeItem(DRAFT_KEY); } catch(e){}
+}
+
+/* ================== INIT ================== */
+cekSesi();
+</script>
+</body>
+</html>
